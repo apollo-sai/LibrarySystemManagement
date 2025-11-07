@@ -6,11 +6,13 @@ using Newtonsoft.Json;
 
 public class Library
 {
-    private string filePath = "books.json";
+    private readonly string _rootPath;
+    private const string BooksData = "books.json";
     public List<Book> Books { get; set; }
 
-    public Library()
+    public Library(string rootPath)
     {
+        _rootPath = rootPath;
         LoadBooks();
     }
     private int nextId = 1;
@@ -26,23 +28,29 @@ public class Library
 
     public void LoadBooks()
     {
+        string filePath = Path.Combine(_rootPath, BooksData);
+
         if (File.Exists(filePath))
         {
             string json = File.ReadAllText(filePath);
-            Books = JsonConvert.DeserializeObject<List<Book>>(json) ?? new List<Book>();
-            AssignIds();
+            Books = JsonConvert.DeserializeObject<List<Book>>(json);
         }
         else
         {
             Books = new List<Book>();
-            SaveBooks();
+            File.WriteAllText(filePath, "[]");
+        }
+
+        if (Books != null)
+        {
+            Books = new List<Book>();
         }
     }
 
     public void SaveBooks()
     {
-        string json = JsonConvert.SerializeObject(Books, Newtonsoft.Json.Formatting.Indented);
-        File.WriteAllText(filePath, json);
+        string filePath = Path.Combine(_rootPath, BooksData);
+        File.WriteAllText(filePath, JsonConvert.SerializeObject(Books, Newtonsoft.Json.Formatting.Indented));
     }
 
     public void BorrowBook(Book book, string borrower)

@@ -29,10 +29,16 @@ namespace LibraryManagement
             public string Status { get; set; }
         }
 
+        private string RootPath()
+        {
+            string path = Application.StartupPath;
+            return Path.GetFullPath(Path.Combine(path, @"..\..\.."));
+        }
+
         public MainForm()
         {
             InitializeComponent();
-            library = new Library();
+            library = new Library(RootPath());
 
             FilterDropDown();
             BooksToGrid();
@@ -131,18 +137,63 @@ namespace LibraryManagement
 
         private void LoadAdmins()
         {
-            string file = "admins.json";
-            if (File.Exists(file))
+            string rootDIR = RootPath();
+            string filePath = Path.Combine(rootDIR, "admins.json");
+            if (File.Exists(filePath))
             {
-                string json = File.ReadAllText(file);
+                string json = File.ReadAllText(filePath);
                 admins = JsonConvert.DeserializeObject<List<Admin>>(json);
             }
             else
             {
                 admins = new List<Admin>();
+                File.WriteAllText(filePath, "[]");
+            }
+
+            if (admins == null || admins.Count == 0)
+            {
+                MessageBox.Show("No admin accounts found! Create an initial admin account to continue.", "First-time setup required.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                InitialAdminAcc(rootDIR, filePath);
             }
         }
 
+        private void InitialAdminAcc(string rootDIR, string filePath)
+        {
+            while (true)
+            {
+                string newUser = Interaction.InputBox("Enter username for the FIRST admin: ", "Create Initial Admin", "");
+                string newPass = Interaction.InputBox("Enter password for the FIRST admin: ", "Create Initial Admin", "");
+
+                if (string.IsNullOrWhiteSpace(newUser) || string.IsNullOrWhiteSpace(newPass))
+                {
+                    MessageBox.Show("Fields are required.");
+                    continue;
+                }
+
+                string newEmail = Interaction.InputBox("Enter email address for the FIRST admin: ", "Add Admin", "");
+                if (string.IsNullOrWhiteSpace(newEmail))
+                {
+                    MessageBox.Show("Email address is required for confirmation.");
+                    continue;
+                }
+                try
+                {
+                    var addr = new System.Net.Mail.MailAddress(newEmail);
+                }
+                catch
+                {
+                    MessageBox.Show("Invalid email format.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    continue;
+                }
+
+                admins.Add(new Admin { Username= newUser, Password = newPass, Email = newEmail });
+
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(admins, Newtonsoft.Json.Formatting.Indented));
+
+                MessageBox.Show($"Initial Admin '{newUser}' created successfully! You can now login.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                break;
+            }
+        }
 
         private void BooksToGrid(List<Book> books=null)
         {
@@ -529,6 +580,7 @@ namespace LibraryManagement
         {
             string newUser = Interaction.InputBox("Enter new admin username:", "Add Admin", "");
             string newPass = Interaction.InputBox("Enter new admin password:", "Add Admin", "");
+            
 
             if (string.IsNullOrWhiteSpace(newUser) || string.IsNullOrWhiteSpace(newPass))
             {
@@ -542,9 +594,29 @@ namespace LibraryManagement
                 return;
             }
 
-            admins.Add(new Admin { Username = newUser, Password = newPass });
+            string newEmail = Interaction.InputBox("Enter new admin email address:", "Add Admin", "");
+            if (string.IsNullOrWhiteSpace(newEmail))
+            {
+                MessageBox.Show("Email address is required for confirmation.");
+                return;
+            }
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(newEmail);
+            }
+            catch
+            {
+                MessageBox.Show("Invalid email format.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
-            File.WriteAllText("admins.json", JsonConvert.SerializeObject(admins, Formatting.Indented));
+
+            admins.Add(new Admin { Username = newUser, Password = newPass, Email = newEmail });
+
+            string rootDIR = RootPath();
+            string filePath = Path.Combine(rootDIR, "admins.json");
+
+            File.WriteAllText(filePath, JsonConvert.SerializeObject(admins, Formatting.Indented));
 
             MessageBox.Show($"Admin '{newUser}' added successfully!");
         }
