@@ -1,0 +1,11 @@
+.vs/
+*.vspscc
+*.suo
+*.user
+
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+
+packages/
