@@ -81,7 +81,7 @@ namespace LibraryManagement
             try
             {
                 string Mail = senderEmail;
-                string APIKey = Properties.Settings.Default.SendGridAPIKey; 
+                string APIKey = SendGridAPIKey; 
                 string smtpHost = "smtp.sendgrid.net";
                 int smtpPort = 587;
                 string currentDate = DateTime.Now.ToString("MMMM dd, yyyy");
@@ -94,7 +94,7 @@ namespace LibraryManagement
                                $"Title: {book.Title}\n" +
                                $"Author: {book.Author}\n\n" +
                                $"Date: {currentDate}\n\n" +
-                               $"Please return the book on time.\n\n" +
+                               $"Please return the book on time.\nYou have {FreeBorrowDays}-days of non-charged borrow days.\nAfter that, every succeeding day of the book being unreturned will have a PHP{PenaltyPerDay} penalty per day.\n\n" +
                                $"Thank you,\n" +
                                $"The LSM Team";
                 message.IsBodyHtml = false;
