@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using Newtonsoft.Json;
 
@@ -16,14 +17,25 @@ public class Library
         LoadBooks();
     }
     private int nextId = 1;
-    public void AssignIds()
+
+    public void FixLoadedBooks()
     {
-        foreach (var book in Books)
+        if (Books != null && Books.Any())
         {
-            if (book.Id == 0) 
-                book.Id = nextId++;
+            nextId = Books.Max(b => b.Id) + 1;
+        }
+        else
+        {
+            nextId = 1;
+
         }
     }
+
+    public int NextBookID()
+    {
+        return nextId++;
+    }
+    
 
 
     public void LoadBooks()
@@ -33,18 +45,14 @@ public class Library
         if (File.Exists(filePath))
         {
             string json = File.ReadAllText(filePath);
-            Books = JsonConvert.DeserializeObject<List<Book>>(json);
+            Books = JsonConvert.DeserializeObject<List<Book>>(json) ?? new List<Book>();
         }
         else
         {
             Books = new List<Book>();
             File.WriteAllText(filePath, "[]");
         }
-
-        if (Books != null)
-        {
-            Books = new List<Book>();
-        }
+        FixLoadedBooks();
     }
 
     public void SaveBooks()

@@ -14,6 +14,12 @@ namespace LibraryManagement
 {
     public partial class MainForm : Form
     {
+        private const int FreeBorrowDays = 3;
+        private const decimal PenaltyPerDay = 70.00m;
+        private const int EmailPenaltyNotif = 3;
+
+        private readonly string senderEmail = "noreply.lsm.notification@gmail.com";
+        private readonly string SendGridAPIKey = Properties.Settings.Default.SendGridAPIKey;
         private bool isAdmin = false;
 
         private Library library;
@@ -35,11 +41,16 @@ namespace LibraryManagement
             return Path.GetFullPath(Path.Combine(path, @"..\..\.."));
         }
 
+        public string RootPathAccessor()
+        {
+            return RootPath();
+        }
+
         public MainForm()
         {
             InitializeComponent();
             library = new Library(RootPath());
-
+            CalculatePenalties();
             FilterDropDown();
             BooksToGrid();
             LoadAdmins();
@@ -69,8 +80,8 @@ namespace LibraryManagement
         {
             try
             {
-                string Mail = "noreply.lsm.notification@gmail.com";
-                string APIKey = "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"; 
+                string Mail = senderEmail;
+                string APIKey = Properties.Settings.Default.SendGridAPIKey; 
                 string smtpHost = "smtp.sendgrid.net";
                 int smtpPort = 587;
                 string currentDate = DateTime.Now.ToString("MMMM dd, yyyy");
@@ -506,6 +517,9 @@ namespace LibraryManagement
             }
             library.BorrowBook(selectedBook, borrower);
             selectedBook.BorrowDate = DateTime.Now;
+            selectedBook.BorrowerEmail = borrowerEmail;
+            selectedBook.Penalty = 0m;
+            selectedBook.PenaltyCheck = DateTime.Today;
             library.SaveBooks();
             BooksToGrid();
             SendBorrowEmail(borrowerEmail, selectedBook, borrower);
@@ -538,7 +552,18 @@ namespace LibraryManagement
 
             if (admins.Any(a => a.Username == username && a.Password == password))
             {
-                isAdminLoggedIn = true;
+                AdminDashboard adminForm = new AdminDashboard(this, library, admins);
+
+                adminForm.AdminAction += (s, args) =>
+                {
+                    FilterDropDown();
+                    BooksToGrid();
+
+                };
+
+                this.Hide();
+                adminForm.Show();
+                /*isAdminLoggedIn = true;
                 btnAddBook.Visible = true;
                 btnAddBook.Enabled = true;
                 btnRemoveBook.Visible = true;
@@ -546,7 +571,7 @@ namespace LibraryManagement
                 btnAddAdmin.Visible = true;
                 btnAdminLogout.Visible = true;
                 btnAdminLogin.Visible = true;
-                btnAdminLogin.Enabled = false;
+                btnAdminLogin.Enabled = false;*/
                 MessageBox.Show("Admin login successful! You can now add/remove admins and books.");
             }
             else
@@ -722,5 +747,118 @@ namespace LibraryManagement
             btnSort.Click += btnSort_Click;
             cmsSort.ItemClicked += cmsSort_ItemClicked;
         }
+
+        private void CalculatePenalties()
+        {
+            bool dataUpdated = false;
+            DateTime today = DateTime.Today;
+
+            var overdueBooks = library.Books.Where(b => b.IsBorrowed && b.BorrowDate.HasValue);
+            var borrowerPenalties = new Dictionary<string, (string email, decimal totalPenalties)>();
+
+            foreach (var book in overdueBooks)
+            {
+                DateTime dueDate = book.BorrowDate.Value.AddDays(FreeBorrowDays);
+                TimeSpan delay = today - dueDate;
+
+
+
+                if (delay.TotalDays >= 1)
+                {
+                    int totalOverdueDays = (int)Math.Floor(delay.TotalDays);
+                    decimal newPenaltyAmount = totalOverdueDays * PenaltyPerDay;
+
+                    if(newPenaltyAmount > book.Penalty)
+                    {
+                        book.Penalty = newPenaltyAmount;
+                        dataUpdated = true;
+                    }
+
+
+                    if (!string.IsNullOrWhiteSpace(book.BorrowerEmail))
+                    {
+                        if (!borrowerPenalties.ContainsKey(book.BorrowedBy))
+                        {
+                            borrowerPenalties.Add(book.BorrowedBy, (book.BorrowerEmail, book.Penalty));
+                        }
+                        else
+                        {
+                            var existing = borrowerPenalties[book.BorrowedBy];
+                            borrowerPenalties[book.BorrowedBy] = (existing.email, existing.totalPenalties + book.Penalty);
+                        }
+                    }
+                        
+                }
+            }
+
+
+
+            foreach(var borrower in borrowerPenalties)
+            {
+                string borrowerName = borrower.Key;
+                decimal totalPenalty = borrower.Value.totalPenalties;
+                string borrowerEmail = borrower.Value.email;
+
+
+                var borBook = library.Books.FirstOrDefault(b => b.BorrowedBy == borrowerName);
+
+
+                if (borBook != null && (today - borBook.PenaltyCheck).TotalDays >= EmailPenaltyNotif)
+                {
+                    bool emailSentSuccessfully = SendPenaltyEmail(borrowerEmail, borrowerName, totalPenalty);
+
+
+                    if (emailSentSuccessfully)
+                    {
+                        foreach (var book in library.Books.Where(b => b.BorrowedBy == borrowerName))
+                        {
+                            book.PenaltyCheck = today;
+                        }
+                        dataUpdated = true;
+                    }
+                    
+                   
+                }
+            }
+            if (dataUpdated)
+            {
+                library.SaveBooks();
+            }
+        }
+
+
+
+
+        private bool SendPenaltyEmail(string recipientEmail, string borrowerName, decimal totalPenalty)
+        {
+            try
+            {
+                string body = $"Dear {borrowerName}, \n\n" +
+                    $"This is an automated notice regarding your overdue book/s.\n" +
+                    $"Your current total penalty is: PHP{totalPenalty}\n\n" +
+                    $"The Penalty per day is P{PenaltyPerDay:0.00} after the {FreeBorrowDays}-day free period.\n" +
+                    $"Please return the overdue books immediately to stop further charges.\n\n" +
+                    $"Thank you,\n- The LSM Team";
+                MailMessage message = new MailMessage();
+                message.From = new MailAddress(senderEmail);
+                message.Subject = "URGENT: Overdue Book Penalty Notice";
+                message.To.Add(new MailAddress(recipientEmail));
+                message.Body = body;
+                message.IsBodyHtml = false;
+
+
+                var smtpclient = new SmtpClient("smtp.sendgrid.net")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("apikey", SendGridAPIKey),
+                    EnableSsl = true,
+                };
+                smtpclient.Send(message);
+                return true;
+            }
+            catch (Exception) { return false; }
+            
+        }
+
     }
 }

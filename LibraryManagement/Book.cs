@@ -11,4 +11,9 @@ public class Book
     public string BorrowedBy { get; set; }
 
     public DateTime? BorrowDate { get; set; }
+
+    public string BorrowerEmail { get; set; }
+
+    public decimal Penalty { get; set; }
+    public DateTime PenaltyCheck {  get; set; }= DateTime.Today;
 }
