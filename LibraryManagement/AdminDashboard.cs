@@ -19,15 +19,18 @@ namespace LibraryManagement
         private MainForm mainForm;
         private Library library;
         private List<Admin> admins;
+        private string Username;
 
         public event EventHandler AdminAction;
-        public AdminDashboard(MainForm caller, Library lib, List<Admin> adminlist)
+
+        
+        public AdminDashboard(MainForm caller, Library lib, List<Admin> adminlist, string loggedInAdminUsername)
         {
             InitializeComponent();
             this.mainForm = caller;
             this.library = lib;
             this.admins = adminlist;
-
+            this.Username = loggedInAdminUsername;
 
         }
 
@@ -38,7 +41,10 @@ namespace LibraryManagement
 
         private void AdminDashboard_Load(object sender, EventArgs e)
         {
-
+            if (lblWelcome != null)
+            {
+                lblWelcome.Text = $"Welcome, {Username}!";
+            }
         }
 
         private void btnAddBook_Click(object sender, EventArgs e)
@@ -174,5 +180,40 @@ namespace LibraryManagement
             mainForm.Show();
             MessageBox.Show("Successfully logged out.", "Logout", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        private void lblWelcome_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnBorrowedList_Click(object sender, EventArgs e)
+        {
+            var borrowedBooks = library.Books.Where(book => book.IsBorrowed).Select(book => new BorrowedList
+            {
+                Title = book.Title,
+                BorrowerName = book.BorrowedBy,
+                Penalty = book.Penalty,
+                DateBorrowed = book.BorrowDate
+            }).ToList();
+
+
+            if (borrowedBooks.Count == 0)
+            {
+                MessageBox.Show("No books are borrowed.");
+                return;
+            }
+
+            using (var borrowedForm =new BorrowedListForm(borrowedBooks))
+            {
+                borrowedForm.ShowDialog();
+            }
+        }
+    }
+    public class BorrowedList
+    {
+        public string Title { get; set; }
+        public string BorrowerName { get; set; }
+        public decimal Penalty { get; set; }
+        public DateTime? DateBorrowed { get; set; }
     }
 }

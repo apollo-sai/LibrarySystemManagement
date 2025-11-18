@@ -58,6 +58,12 @@
     <Compile Include="AdminDashboard.Designer.cs">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
     </Compile>
+    <Compile Include="BorrowedListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BorrowedListForm.Designer.cs">
+      <DependentUpon>BorrowedListForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Library.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -69,6 +75,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AdminDashboard.resx">
       <DependentUpon>AdminDashboard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BorrowedListForm.resx">
+      <DependentUpon>BorrowedListForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

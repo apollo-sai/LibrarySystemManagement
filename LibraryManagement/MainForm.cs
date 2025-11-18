@@ -550,9 +550,14 @@ namespace LibraryManagement
             string username = Interaction.InputBox("Enter admin username:", "Admin Login", "");
             string password = Interaction.InputBox("Enter password:", "Admin Login", "");
 
+            var loggedInAdmin = admins.FirstOrDefault(a => a.Username == username && a.Password == password);
+
+            
+
+
             if (admins.Any(a => a.Username == username && a.Password == password))
             {
-                AdminDashboard adminForm = new AdminDashboard(this, library, admins);
+                AdminDashboard adminForm = new AdminDashboard(this, library, admins, username);
 
                 adminForm.AdminAction += (s, args) =>
                 {

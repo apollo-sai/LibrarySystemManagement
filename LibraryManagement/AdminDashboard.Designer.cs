@@ -32,11 +32,13 @@
             this.btnRemoveBook = new System.Windows.Forms.Button();
             this.btnAdminLogout = new System.Windows.Forms.Button();
             this.btnAddAdmin = new System.Windows.Forms.Button();
+            this.lblWelcome = new System.Windows.Forms.Label();
+            this.btnBorrowedList = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnAddBook
             // 
-            this.btnAddBook.Location = new System.Drawing.Point(12, 116);
+            this.btnAddBook.Location = new System.Drawing.Point(12, 79);
             this.btnAddBook.Name = "btnAddBook";
             this.btnAddBook.Size = new System.Drawing.Size(98, 32);
             this.btnAddBook.TabIndex = 0;
@@ -46,7 +48,7 @@
             // 
             // btnRemoveBook
             // 
-            this.btnRemoveBook.Location = new System.Drawing.Point(158, 116);
+            this.btnRemoveBook.Location = new System.Drawing.Point(158, 79);
             this.btnRemoveBook.Name = "btnRemoveBook";
             this.btnRemoveBook.Size = new System.Drawing.Size(98, 32);
             this.btnRemoveBook.TabIndex = 1;
@@ -56,7 +58,7 @@
             // 
             // btnAdminLogout
             // 
-            this.btnAdminLogout.Location = new System.Drawing.Point(158, 176);
+            this.btnAdminLogout.Location = new System.Drawing.Point(158, 128);
             this.btnAdminLogout.Name = "btnAdminLogout";
             this.btnAdminLogout.Size = new System.Drawing.Size(98, 32);
             this.btnAdminLogout.TabIndex = 2;
@@ -66,7 +68,7 @@
             // 
             // btnAddAdmin
             // 
-            this.btnAddAdmin.Location = new System.Drawing.Point(12, 176);
+            this.btnAddAdmin.Location = new System.Drawing.Point(12, 128);
             this.btnAddAdmin.Name = "btnAddAdmin";
             this.btnAddAdmin.Size = new System.Drawing.Size(98, 32);
             this.btnAddAdmin.TabIndex = 3;
@@ -74,11 +76,35 @@
             this.btnAddAdmin.UseVisualStyleBackColor = true;
             this.btnAddAdmin.Click += new System.EventHandler(this.btnAddAdmin_Click);
             // 
+            // lblWelcome
+            // 
+            this.lblWelcome.AutoSize = true;
+            this.lblWelcome.Font = new System.Drawing.Font("MS Gothic", 13F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblWelcome.Location = new System.Drawing.Point(12, 33);
+            this.lblWelcome.Name = "lblWelcome";
+            this.lblWelcome.Size = new System.Drawing.Size(78, 18);
+            this.lblWelcome.TabIndex = 4;
+            this.lblWelcome.Text = "Welcome";
+            this.lblWelcome.Click += new System.EventHandler(this.lblWelcome_Click);
+            // 
+            // btnBorrowedList
+            // 
+            this.btnBorrowedList.Font = new System.Drawing.Font("Maiandra GD", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnBorrowedList.Location = new System.Drawing.Point(15, 176);
+            this.btnBorrowedList.Name = "btnBorrowedList";
+            this.btnBorrowedList.Size = new System.Drawing.Size(244, 43);
+            this.btnBorrowedList.TabIndex = 5;
+            this.btnBorrowedList.Text = "Borrowed Books List";
+            this.btnBorrowedList.UseVisualStyleBackColor = true;
+            this.btnBorrowedList.Click += new System.EventHandler(this.btnBorrowedList_Click);
+            // 
             // AdminDashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 301);
+            this.ClientSize = new System.Drawing.Size(271, 238);
+            this.Controls.Add(this.btnBorrowedList);
+            this.Controls.Add(this.lblWelcome);
             this.Controls.Add(this.btnAddAdmin);
             this.Controls.Add(this.btnAdminLogout);
             this.Controls.Add(this.btnRemoveBook);
@@ -87,6 +113,7 @@
             this.Text = "Admin Dashboard";
             this.Load += new System.EventHandler(this.AdminDashboard_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -96,5 +123,7 @@
         private System.Windows.Forms.Button btnRemoveBook;
         private System.Windows.Forms.Button btnAdminLogout;
         private System.Windows.Forms.Button btnAddAdmin;
+        private System.Windows.Forms.Label lblWelcome;
+        private System.Windows.Forms.Button btnBorrowedList;
     }
 }
